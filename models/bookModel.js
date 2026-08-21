@@ -6,7 +6,6 @@ const bookSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   category: { type: String, required: true },
 
-  // Image uploaded using Multer
   image: { type: String, required: true },
 
   createdAt: { type: Date, default: Date.now }
