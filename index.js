@@ -6,15 +6,13 @@ const fs = require("fs");
 require("dotenv").config();
 
 const Book = require("./models/bookModel");
+const authRouter = require("./routes/auth-routes");
 
 const app = express();
 
 app.use(express.json());
 
-// Make uploaded images accessible
 app.use("/uploads", express.static("uploads"));
-
-
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -43,8 +41,6 @@ const upload = multer({
   }
 });
 
-
-
 const PORT = process.env.PORT || 5000;
 
 const MONGO_URI =
@@ -55,12 +51,10 @@ mongoose
   .then(() => console.log("DB connected successfully!"))
   .catch((err) => console.log("DB connection error:", err));
 
-
-
+app.use("/api/v1/auth", authRouter);
 
 app.post("/books", upload.single("image"), async (req, res) => {
   try {
-    // Check if image was uploaded
     if (!req.file) {
       return res.status(400).json({
         status: "fail",
@@ -73,8 +67,6 @@ app.post("/books", upload.single("image"), async (req, res) => {
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
-
-      // Save image path in MongoDB
       image: `/uploads/${req.file.filename}`
     });
 
@@ -90,9 +82,6 @@ app.post("/books", upload.single("image"), async (req, res) => {
     });
   }
 });
-
-
-
 
 app.get("/books", async (req, res) => {
   try {
@@ -111,8 +100,6 @@ app.get("/books", async (req, res) => {
     });
   }
 });
-
-
 
 app.get("/books/:id", async (req, res) => {
   try {
@@ -138,12 +125,6 @@ app.get("/books/:id", async (req, res) => {
   }
 });
 
-
-
-// =========================
-// UPDATE BOOK
-// =========================
-
 app.patch("/books/:id", upload.single("image"), async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -155,14 +136,12 @@ app.patch("/books/:id", upload.single("image"), async (req, res) => {
       });
     }
 
-    // تجهيز البيانات للتحديث بشكل آمن
     const updateData = {};
     if (req.body.title) updateData.title = req.body.title;
     if (req.body.description) updateData.description = req.body.description;
     if (req.body.price) updateData.price = req.body.price;
     if (req.body.category) updateData.category = req.body.category;
 
-    // إذا تم رفع صورة جديدة أثناء التعديل
     if (req.file) {
       if (book.image) {
         const oldImagePath = path.join(__dirname, book.image);
@@ -225,8 +204,6 @@ app.delete("/books/:id", async (req, res) => {
     });
   }
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}...`);
